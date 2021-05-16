@@ -1,0 +1,224 @@
+<JavaScript & CSS Scaffolding>
+-url =>https://laravelarticle.com/laravel-8-authentication-tutorial
+-url =>https://stackoverflow.com/questions/57774231/artisan-command-makeauth-is-not-defined-in-laravel-6
+
+-composer require laravel/ui:^2.4
+-php artisan ui bootstrap
+-php artisan ui bootstrap --auth
+-npm install
+-npm run dev
+
+<Controller create in folder>
+-php artisan Auth\\loginController
+
+<create simple laravel login >
+-url => https://www.webslesson.info/2018/03/simple-login-system-in-laravel.html 
+
+
+///////////////////////////////////////////////
+7 restful items
+1. index
+2.show($id)
+3.store // when submit it
+4.create //show view to insert
+5.edit
+6.update
+7.destory
+
+in laravel 
+php artisan make:controller ProjectController -r -m Project
+-r  make crud
+-m generate model for project
+if it gives error then
+composer dump-autoload then run command again
+
+make faker class for inserting random demy data
+php artisan make:factory ArticlesFactory -m "App\Articles"
+-m means which articles
+
+return =>[
+user=> factory(\app\user::class),
+title=>$faker->sentences,
+body=>$faker->paragraph,
+]
+php artisan tinker
+factory(app\articles,5)->create();
+
+if we delete the user from parent table also delete its articles
+$table->foreign('user_id)->references('id)->on('users')->onDelete('cascade');
+
+rule for many exists
+tags=>exists:tags,id
+
+$articles->tags()->attach([1,2]) or simply attach(1) or detach(2) means remove data
+
+if(Auth::check()) or @auth endauth
+@guest @endguest
+
+in service container
+its start with 
+app()->bind(example,function(){
+	return new \App\Example
+})
+$ex=resolve (Example) or app()->make(Example) both are same instantiate
+ddd($ex)
+class example{
+ protected $collab
+construct(Colla $collab){
+$this->collab=$collab
+}
+}
+
+class collab{
+}
+
+sending email  text only
+Mail::raw('its works',function($message){
+	$message->to(request(email))->subject('Hello there')
+})
+
+if you want to send html in email
+php artisan make:mail contact me
+function build(){ return view (contact blade)->subject('SOMe topic")
+Mail::to(request(email))->send(new Contact($topic));
+
+if you markdown in email
+replace view with markplace
+@component(mail::message)
+#heading 
+lorem
+@endcomponent
+
+if you want to send mail through notification
+php artisan make:notification PaymentRecieve
+Notification::send(request->user(),new PaymentRecieve())
+request()->user()->notify(new PaymentRecieve())
+
+
+use authorization in laravel
+1st define provider
+AuthService provider class boot function define a gate class
+Gate::define('update-con',function(User $user,Conversation $converstation){
+	return true;
+})
+@can(update-conv,$conver)
+@endcan
+in controller user $this->authorize('update-con',$reply->con)
+
+also make policy
+php artisan make:policy ConPolicy --model=Con
+update($user,$con){ return $con->user->is($user);}
+$this->authorize('update',$con)
+before function in policy use for authorize filter in policy eg user is admin is authorized to check
+  ///////////////////////////////////
+laravel tutorial 
+
+//////////////////////////////////////////////////////////////////////
+
+1.pass parameter in route 
+
+Route::get('admin/{number}','AdminController@index');
+
+Route::get('admin/{number}',function($number){
+	echo $number;
+});
+
+optional Parameter  passing
+
+Route::get('admin/{number}/{second?}',function($number,$second='321'){
+	echo $number;
+	echo $second;
+});
+
+use Regex (regular expression) if number input only numbers
+Route::get('admin/{number}/{second}',function($number){
+	echo $number;
+})->where([
+	'number' => '[0-9]+,
+	'second'=> '[a-z]+'
+']);
+
+send change url when client demand
+suppose 
+Route::get('/',function(){
+	echo url('admin',['234','32]);
+});
+
+if change routes than change all places manually define name routes
+
+Route::get('admin/{number}/{second}',function($number){
+	echo $number;
+})->where([
+	'number' => '[0-9]+,
+	'second'=> '[a-z]+'
+'])->name('admin_number');
+
+Route::get('/',function(){
+	echo route('admin_number',['234','32]);
+});
+
+url and route are helper function
+
+alernate of route name is
+
+route::get([
+'as' => 'admin_number',
+'uses' => 'admincontroller@index',
+'middleware' => 'web'
+]);
+
+if add middleware in muliple routes than create groups
+namespace use for sub directory like
+adminControler in admin folder
+
+Route::group([	
+	'middleware' => 'web',
+	'namespace' => 'Admin'
+	'as' => 'admin-'
+],function(){
+	Route::get('admin/index');
+	Route::get('admin/dashboard');
+	Route::get('admin/create_user');
+	Route::get('dashboard',[
+		'as' => 'dashboard',
+		'prefix' => 'admin-panel',     ///url :public/admin-panel/dashboard
+		'uses' => 'admin@index'
+	]);
+});
+
+Route::any('admin',function(){
+});
+any accept all but match verified like which method call
+
+Route::match(['put','post'],'admin','Admin\adminController@index');
+
+if you don't want to register route than use Route::Controller
+Route::Controller('admin','adminController');
+
+and in class function define type method like
+class AdminController{
+	public function getDashboard(){
+	}
+	public function postAddImage(){
+	}
+	public function missingMethod($params=[]){
+		dd($params);//dd is helper function in laravel like print_r and exit 
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+Passing data view to controller
+$data=['id' =>1,'name' => 'sufian']
+1.view('test_view',compact('data'));
+2.view('test_view',['data' => $data])
+3.view('test_view')->with('data',$data)->with('address',$address);
+4.view('test_view')->with([
+	'data'=>$data,
+	'address'=>$address
+]);
+5.view('test_view')->withNames($data);
+
+method 5 is Names is key 
+in view print_r($names); is true
+but print_r($data) is giving error because change "withNames" to "withData" than error msg is not shown
